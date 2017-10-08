@@ -136,9 +136,13 @@ def perception_step(Rover):
         # Example: Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
         #          Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
         #          Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
-    Rover.worldmap[obs_y_world, obs_x_world, 0] += 5
-    Rover.worldmap[rok_y_world, rok_x_world, 1] = 255
-    Rover.worldmap[ter_y_world, ter_x_world, 2] += 20
+    pitch_tolerance = 0.6
+    roll_tolerance = 1.0
+    if Rover.pitch < pitch_tolerance or Rover.pitch > 360 - pitch_tolerance:
+        if Rover.roll < roll_tolerance or Rover.roll > 360 - roll_tolerance:
+            Rover.worldmap[obs_y_world, obs_x_world, 0] += 5
+            Rover.worldmap[rok_y_world, rok_x_world, 1] = 255
+            Rover.worldmap[ter_y_world, ter_x_world, 2] += 25
 
     # 8) Convert rover-centric pixel positions to polar coordinates
     # Update Rover pixel distances and angles

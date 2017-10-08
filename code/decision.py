@@ -15,31 +15,25 @@ def steer_base_on_scene(angles):
     return steer
 
 # - - - - - Mode find_rock - - - - -
-def mode_encounter_rock(Rover):
+def mode_approach_rock(Rover):
     Rover.mode = 'find_rock'
     Rover.brake = 0
     Rover.steer = steer_base_on_scene(Rover.rok_angles)
     Rover.throttle = throttle_base_on_limit(Rover)
 
-def mode_approach_rock(Rover):
-    Rover.brake = 0
-    Rover.steer = steer_base_on_scene(Rover.rok_angles)
-    Rover.throttle = throttle_base_on_limit(Rover)
-
 def mode_pick_up(Rover):
+    Rover.mode = 'stop'
     Rover.brake = Rover.brake_set
     Rover.steer = 0
     Rover.throttle = 0
 
 def mode_near_rock(Rover):
+    Rover.mode = 'stop'
     Rover.brake = Rover.brake_set
     Rover.steer = 0
     Rover.throttle = 0
     Rover.send_pickup = True
     Rover.samples_collected += 1
-
-def mode_complete_rock(Rover):
-    Rover.mode = 'stop'
 
 # - - - - - Mode forward - - - - -
 def mode_continue_forward(Rover):
@@ -122,37 +116,30 @@ def decision_step(Rover):
     # Implement conditionals to decide what to do given perception data
     # Here you're all set up with some basic functionality but you'll need to
     # improve on this decision tree to do a good job of navigating autonomously!
-    print('- - -- - ')
-    print(Rover.stuck_counter)
-    print(Rover.mode)
+
     # Example:
     # Check if we have vision data to make decisions with
     if Rover.nav_angles is not None:
         # Check for Rover.mode status
-        if Rover.mode == 'find_rock':
-            if Rover.stuck_counter > Rover.stuck_limit:
-                mode_encounter_stuck(Rover)
-            elif Rover.picking_up == 1:
-                mode_pick_up(Rover)
-            elif Rover.near_sample == 1:
-                mode_near_rock(Rover)
-            elif len(Rover.rok_dists) == 0:
-                mode_complete_rock(Rover)
-            else:
-                mode_approach_rock(Rover)
+        if Rover.picking_up == 1:
+            mode_pick_up(Rover)
+        elif Rover.near_sample == 1:
+            mode_near_rock(Rover)
+        elif len(Rover.rok_dists) > 0:
+            mode_approach_rock(Rover)
+
         # Check for Rover.mode status
         elif Rover.mode == 'stuck':
             if abs(Rover.yaw - Rover.stuck_yaw) >= 60:
                 mode_resolve_stuck(Rover)
             else:
                 mode_in_stuck(Rover)
+
         elif Rover.mode == 'forward':
             # If mode is forward, navigable terrain looks good 
             # and velocity is below max, then throttle
             if Rover.stuck_counter > Rover.stuck_limit:
                 mode_encounter_stuck(Rover)
-            elif len(Rover.rok_dists) > 0:
-                mode_encounter_rock(Rover)
             elif len(Rover.nav_angles) >= Rover.stop_forward:
                 mode_continue_forward(Rover) 
             # If there's a lack of navigable terrain pixels then go to 'stop' mode
